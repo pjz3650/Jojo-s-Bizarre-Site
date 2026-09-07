@@ -1,9 +1,8 @@
 const API_URL = "https://graphql.anilist.co";
 const ANIME_PROCURADO = "JoJo's Bizarre Adventure";
 
-// Uma única consulta traz a lista de partes da saga (para o carrossel
-// "Temporadas") e, aninhado em cada parte, o elenco de personagens
-// (que depois é deduplicado e ordenado por popularidade).
+// AniList fornece conteúdo editorial e dados extras das fichas.
+// A lista de personagens selecionáveis vem exclusivamente de JojoCatalog.
 const CONSULTA = `
   query ($nome: String) {
     Page(page: 1, perPage: 12) {
@@ -76,12 +75,12 @@ const nomesMeses = [
 ];
 
 const elementos = {};
+const catalogo = { personagens: [], fonte: "", requisicao: 0, extras: new Map(), selecionado: null };
 
 function mapearElementos() {
   elementos.cabecalho = document.querySelector("#cabecalho");
   elementos.botaoMenu = document.querySelector("#botaoMenu");
   elementos.navegacao = document.querySelector("#navegacao");
-  elementos.heroImagem = document.querySelector("#heroImagem");
   elementos.heroCollage = document.querySelector("#heroCollage");
   elementos.sinopseConteudo = document.querySelector("#sinopseConteudo");
   elementos.sinopseMeta = document.querySelector("#sinopseMeta");
@@ -90,6 +89,9 @@ function mapearElementos() {
   elementos.setaEsquerda = document.querySelector("#setaEsquerda");
   elementos.setaDireita = document.querySelector("#setaDireita");
   elementos.gradePersonagens = document.querySelector("#gradePersonagens");
+  elementos.parte = document.querySelector("#catalogo-parte");
+  elementos.busca = document.querySelector("#catalogo-busca");
+  elementos.fonte = document.querySelector("#catalogo-status");
   elementos.modal = document.querySelector("#modalPersonagem");
   elementos.modalFundo = document.querySelector("#modalFundo");
   elementos.modalFechar = document.querySelector("#modalFechar");
@@ -99,30 +101,7 @@ function mapearElementos() {
   elementos.modalDados = document.querySelector("#modalDados");
   elementos.modalDescricao = document.querySelector("#modalDescricao");
   elementos.modalLink = document.querySelector("#modalLink");
-}
-
-/* -------------------- Cabeçalho e menu mobile -------------------- */
-
-function configurarCabecalho() {
-  const aoRolar = () => {
-    elementos.cabecalho.classList.toggle("cabecalho--solido", window.scrollY > 40);
-  };
-  aoRolar();
-  window.addEventListener("scroll", aoRolar, { passive: true });
-}
-
-function configurarMenuMobile() {
-  elementos.botaoMenu.addEventListener("click", () => {
-    const aberto = elementos.navegacao.classList.toggle("navegacao--aberta");
-    elementos.botaoMenu.setAttribute("aria-expanded", String(aberto));
-  });
-
-  elementos.navegacao.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      elementos.navegacao.classList.remove("navegacao--aberta");
-      elementos.botaoMenu.setAttribute("aria-expanded", "false");
-    });
-  });
+  elementos.modalEquipe = document.querySelector("#modalEquipe");
 }
 
 /* -------------------- Texto auxiliar -------------------- */
@@ -159,7 +138,7 @@ function nomeExibicao(media) {
 /* -------------------- Busca na AniList -------------------- */
 
 async function buscarDadosDaSaga() {
-  const resposta = await fetch(API_URL, {
+  const resultado = await JojoSite.fetchJson(API_URL, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -170,16 +149,6 @@ async function buscarDadosDaSaga() {
       variables: { nome: ANIME_PROCURADO },
     }),
   });
-
-  if (!resposta.ok) {
-    throw new Error(`A API respondeu com o status ${resposta.status}.`);
-  }
-
-  const resultado = await resposta.json();
-
-  if (resultado.errors?.length) {
-    throw new Error(resultado.errors.map(({ message }) => message).join("; "));
-  }
 
   const partes = (resultado.data?.Page?.media ?? []).filter((media) =>
     nomeExibicao(media).toLowerCase().includes("jojo") ||
@@ -228,20 +197,17 @@ function renderizarHeroESinopse(destaque, personagens) {
   ];
 
   const imagensHero = protagonistasHero
-    .map((nome) => personagens.find((p) => p.name?.full === nome)?.image?.large)
-    .filter(Boolean);
+    .map((nome) => personagens.find((p) => p.name?.full === nome)?.image?.large);
 
   if (elementos.heroCollage) {
     const paineis = [...elementos.heroCollage.querySelectorAll(".hero__painel")];
     paineis.forEach((painel, indice) => {
       const imagem = imagensHero[indice];
-      if (imagem) painel.style.backgroundImage = `url(${imagem})`;
+      JojoSite.setImage(painel, imagem, protagonistasHero[indice]);
     });
   }
 
-  if (destaque.coverImage?.extraLarge) {
-    elementos.sinopseImagem.style.backgroundImage = `url(${destaque.coverImage.extraLarge})`;
-  }
+  JojoSite.setImage(elementos.sinopseImagem, destaque.coverImage?.extraLarge, "JOJO'S BIZARRE ADVENTURE");
 
   elementos.sinopseConteudo.textContent = limparDescricao(destaque.description);
 
@@ -265,8 +231,8 @@ function renderizarHeroESinopse(destaque, personagens) {
 function criarCartaoParte(parte, indice) {
   const cartao = document.createElement("a");
   cartao.className = "cartao-parte";
-  cartao.href = parte.siteUrl;
-  cartao.target = "_blank";
+  cartao.href = JojoSite.safeUrl(parte.siteUrl) || "/protagonistas";
+  if (!parte.siteUrl?.startsWith("/")) cartao.target = "_blank";
   cartao.rel = "noopener noreferrer";
 
   const numero = document.createElement("span");
@@ -275,9 +241,7 @@ function criarCartaoParte(parte, indice) {
 
   const imagem = document.createElement("div");
   imagem.className = "cartao-parte__imagem";
-  if (parte.coverImage?.extraLarge) {
-    imagem.style.backgroundImage = `url(${parte.coverImage.extraLarge})`;
-  }
+  JojoSite.setImage(imagem, parte.coverImage?.extraLarge, nomeExibicao(parte));
 
   const corpo = document.createElement("div");
   corpo.className = "cartao-parte__corpo";
@@ -320,25 +284,28 @@ function criarCartaoPersonagem(personagem) {
   cartao.type = "button";
   cartao.className = "cartao-personagem";
   cartao.setAttribute("aria-haspopup", "dialog");
+  cartao.dataset.characterId = personagem.id;
 
   const imagem = document.createElement("div");
   imagem.className = "cartao-personagem__imagem";
-  if (personagem.image?.large) {
-    imagem.style.backgroundImage = `url(${personagem.image.large})`;
-  }
+  JojoSite.setImage(imagem, personagem.imageUrl, personagem.name);
 
   const corpo = document.createElement("div");
   corpo.className = "cartao-personagem__corpo";
 
   const nome = document.createElement("p");
   nome.className = "cartao-personagem__nome";
-  nome.textContent = personagem.name.full;
+  nome.textContent = personagem.name;
 
   const favoritos = document.createElement("p");
   favoritos.className = "cartao-personagem__favoritos";
-  favoritos.textContent = `♥ ${(personagem.favourites ?? 0).toLocaleString("pt-BR")}`;
+  favoritos.textContent = personagem.stand;
 
-  corpo.append(nome, favoritos);
+  const parte = document.createElement("p");
+  parte.className = "cartao-personagem__parte";
+  parte.textContent = personagem.partName;
+
+  corpo.append(nome, favoritos, parte);
   cartao.append(imagem, corpo);
 
   cartao.addEventListener("click", () => abrirModalPersonagem(personagem));
@@ -346,9 +313,61 @@ function criarCartaoPersonagem(personagem) {
   return cartao;
 }
 
-function renderizarPersonagens(personagens) {
-  const principais = personagens.slice(0, 24);
-  elementos.gradePersonagens.replaceChildren(...principais.map(criarCartaoPersonagem));
+function renderizarPersonagens() {
+  if (!catalogo.fonte) return;
+  const personagens = JojoCatalog.filter(catalogo.personagens, elementos.busca.value);
+  elementos.gradePersonagens.replaceChildren(...personagens.map(criarCartaoPersonagem));
+  elementos.fonte.textContent = `${catalogo.fonte} · ${personagens.length} de ${catalogo.personagens.length} personagens · Mesmo catálogo de Minhas equipes.`;
+  if (!personagens.length) {
+    const mensagem = document.createElement("p");
+    mensagem.className = "mensagem-carregando";
+    mensagem.textContent = "Nenhum personagem encontrado. Tente outro nome, Stand ou parte.";
+    elementos.gradePersonagens.append(mensagem);
+  }
+}
+
+function mostrarErroCatalogo(erro, tentar) {
+  elementos.fonte.textContent = "Catálogo indisponível no momento.";
+  mostrarErro(elementos.gradePersonagens, erro.message || "Não foi possível carregar o catálogo.");
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = "catalogo-tentar";
+  botao.textContent = "Tentar novamente";
+  botao.addEventListener("click", tentar);
+  elementos.gradePersonagens.append(botao);
+}
+
+async function carregarPersonagens() {
+  const requisicao = ++catalogo.requisicao;
+  catalogo.fonte = "";
+  catalogo.personagens = [];
+  elementos.fonte.textContent = "Consultando o catálogo...";
+  const carregando = document.createElement("p");
+  carregando.className = "mensagem-carregando";
+  carregando.textContent = "Carregando personagens...";
+  elementos.gradePersonagens.replaceChildren(carregando);
+  try {
+    const parte = elementos.parte.value || "3";
+    JojoCatalog.rememberPart(parte);
+    const resposta = await JojoCatalog.characters(parte);
+    if (requisicao !== catalogo.requisicao) return;
+    catalogo.personagens = resposta.data;
+    catalogo.fonte = resposta.meta.source;
+    renderizarPersonagens();
+  } catch (erro) {
+    if (requisicao === catalogo.requisicao) mostrarErroCatalogo(erro, carregarPersonagens);
+  }
+}
+
+async function iniciarCatalogo() {
+  elementos.parte.disabled = true;
+  try {
+    const resposta = await JojoCatalog.parts();
+    JojoCatalog.populateParts(elementos.parte, resposta.data);
+    elementos.parte.disabled = false;
+    elementos.busca.value = JojoCatalog.initialSearch();
+    await carregarPersonagens();
+  } catch (erro) { mostrarErroCatalogo(erro, iniciarCatalogo); }
 }
 
 /* -------------------- Modal de personagem -------------------- */
@@ -365,28 +384,42 @@ let ultimoElementoFocado = null;
 
 function abrirModalPersonagem(personagem) {
   ultimoElementoFocado = document.activeElement;
-
-  elementos.modalImagem.style.backgroundImage = personagem.image?.large
-    ? `url(${personagem.image.large})`
-    : "none";
-  elementos.modalNome.textContent = personagem.name.full;
-  elementos.modalNomeNativo.textContent = personagem.name.native ?? "";
-
-  elementos.modalDados.replaceChildren();
-  adicionarDado(elementos.modalDados, "Gênero", traducaoGenero[personagem.gender] ?? personagem.gender);
-  adicionarDado(elementos.modalDados, "Idade", personagem.age);
-  adicionarDado(elementos.modalDados, "Aniversário", formatarAniversario(personagem.dateOfBirth));
-  adicionarDado(elementos.modalDados, "Tipo sanguíneo", personagem.bloodType);
-
-  elementos.modalDescricao.textContent = limparDescricao(personagem.description, 500);
-  elementos.modalLink.href = personagem.siteUrl ?? "#";
+  catalogo.selecionado = personagem;
+  preencherModalPersonagem(personagem);
 
   elementos.modal.hidden = false;
+  elementos.modal.showModal();
   document.body.style.overflow = "hidden";
   elementos.modalFechar.focus();
 }
 
+function preencherModalPersonagem(personagem) {
+  const extra = catalogo.extras.get(JojoCatalog.normalize(personagem.name)) || {};
+  JojoSite.setImage(elementos.modalImagem, personagem.imageUrl, personagem.name);
+  elementos.modalNome.textContent = personagem.name;
+  elementos.modalNomeNativo.textContent = extra.name?.native ?? "";
+
+  elementos.modalDados.replaceChildren();
+  adicionarDado(elementos.modalDados, "Stand / técnica", personagem.stand);
+  adicionarDado(elementos.modalDados, "Parte", personagem.partName);
+  adicionarDado(elementos.modalDados, "Papel", personagem.role);
+  adicionarDado(elementos.modalDados, "Gênero", traducaoGenero[extra.gender] ?? extra.gender);
+  adicionarDado(elementos.modalDados, "Idade", extra.age);
+  adicionarDado(elementos.modalDados, "Aniversário", formatarAniversario(extra.dateOfBirth));
+  adicionarDado(elementos.modalDados, "Tipo sanguíneo", extra.bloodType);
+  adicionarDado(elementos.modalDados, "Favoritos na AniList", extra.favourites);
+
+  elementos.modalDescricao.textContent = extra.description
+    ? limparDescricao(extra.description, 500)
+    : "Este personagem está disponível no catálogo de equipes. Informações biográficas extras não estão disponíveis no momento.";
+  elementos.modalLink.href = JojoSite.safeUrl(extra.siteUrl) || "#";
+  elementos.modalLink.hidden = !JojoSite.safeUrl(extra.siteUrl);
+  elementos.modalEquipe.href = JojoCatalog.teamUrl(personagem);
+}
+
 function fecharModalPersonagem() {
+  catalogo.selecionado = null;
+  elementos.modal.close();
   elementos.modal.hidden = true;
   document.body.style.overflow = "";
   ultimoElementoFocado?.focus();
@@ -395,6 +428,10 @@ function fecharModalPersonagem() {
 function configurarModal() {
   elementos.modalFechar.addEventListener("click", fecharModalPersonagem);
   elementos.modalFundo.addEventListener("click", fecharModalPersonagem);
+  elementos.modal.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    fecharModalPersonagem();
+  });
   document.addEventListener("keydown", (evento) => {
     if (evento.key === "Escape" && !elementos.modal.hidden) {
       fecharModalPersonagem();
@@ -413,25 +450,30 @@ function mostrarErro(container, texto) {
 
 /* -------------------- Inicialização -------------------- */
 
-async function iniciar() {
-  mapearElementos();
-  configurarCabecalho();
-  configurarMenuMobile();
-  configurarSetasDoCarrossel();
-  configurarModal();
-
+async function carregarGuia() {
   try {
     const { partes, personagens, destaque } = await buscarDadosDaSaga();
+    catalogo.extras = new Map(personagens.map((personagem) => [JojoCatalog.normalize(personagem.name.full), personagem]));
     renderizarHeroESinopse(destaque, personagens);
     renderizarPartes(partes);
-    renderizarPersonagens(personagens);
+    if (catalogo.selecionado && elementos.modal.open) preencherModalPersonagem(catalogo.selecionado);
+    document.querySelector("#archive-status").textContent = "Sinopse e temporadas da AniList.";
   } catch (erro) {
-    console.error("Erro ao carregar dados da AniList:", erro);
-    elementos.sinopseConteudo.textContent =
-      "Não foi possível carregar a sinopse agora. Tente novamente em instantes.";
-    mostrarErro(elementos.carrossel, "Não foi possível carregar as partes da saga.");
-    mostrarErro(elementos.gradePersonagens, "Não foi possível carregar os personagens.");
+    const { partes, personagens, destaque } = JOJO_ARCHIVE_FALLBACK;
+    renderizarHeroESinopse(destaque, personagens);
+    renderizarPartes(partes);
+    document.querySelector("#archive-status").textContent = "Sinopse e temporadas da base local. O catálogo de personagens e suas equipes continuam disponíveis.";
   }
+}
+
+async function iniciar() {
+  mapearElementos();
+  configurarSetasDoCarrossel();
+  configurarModal();
+  elementos.parte.addEventListener("change", carregarPersonagens);
+  elementos.busca.addEventListener("input", renderizarPersonagens);
+  // Uma falha/atraso da AniList não muda nem bloqueia a lista de equipes.
+  await Promise.all([iniciarCatalogo(), carregarGuia()]);
 }
 
 if (document.readyState === "loading") {

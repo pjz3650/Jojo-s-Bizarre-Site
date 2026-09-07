@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Site sobre JoJo's Bizarre Adventure — sinopse, partes da saga e personagens, com dados ao vivo da AniList."
+      content="Guia de JoJo's Bizarre Adventure: partes da saga, catálogo de personagens e montagem de equipes com histórico."
     />
     <title>JoJo's Bizarre Adventure — Guia da Saga</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,43 +14,23 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="./style.css" />
-    <script src="./script.js" defer></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/integracao.css') }}" />
+    <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/catalog.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/archive-fallback.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
   </head>
-  <body>
+  <body class="pagina-inicio" data-offline="{{ 'true' if config.JOJO_API_FORCE_FALLBACK else 'false' }}">
     <div class="textura-fundo" aria-hidden="true"></div>
 
-    <header class="cabecalho" id="cabecalho">
-      <div class="cabecalho__conteudo">
-        <a href="#topo" class="marca">
-          <span class="marca__aura">JOJO</span>
-          <span class="marca__sub">Bizarre Adventure</span>
-        </a>
+    {% include '_header.html' %}
 
-        <nav class="navegacao" id="navegacao">
-          <a href="#sinopse">Sinopse</a>
-          <a href="#temporadas">Temporadas</a>
-          <a href="#personagens">Personagens</a>
-          <a href="./protagonistas.html">Protagonistas</a>
-        </nav>
-
-        <button
-          class="botao-menu"
-          id="botaoMenu"
-          aria-expanded="false"
-          aria-controls="navegacao"
-          aria-label="Abrir menu de navegação"
-        >
-          <span></span><span></span><span></span>
-        </button>
-      </div>
-    </header>
-
-    <main id="topo">
+    <main id="conteudo" tabindex="-1">
       <section class="hero hero--editorial" id="hero" aria-label="Abertura">
         <div class="hero__fundo-grafico" aria-hidden="true"></div>
         <div class="hero__conteudo">
-          <p class="hero__selo">THE JOESTAR BLOODLINE · ANILIST ARCHIVE</p>
+          <p class="hero__selo">THE JOESTAR BLOODLINE · JOJO ARCHIVE</p>
           <h1 class="hero__titulo">
             JOJO<span class="hero__titulo-marca">'S</span><br />
             BIZARRE<br />
@@ -61,7 +41,8 @@
           </p>
           <div class="hero__acoes">
             <a href="#temporadas" class="botao botao--primario">Explorar as partes</a>
-            <a href="./protagonistas.html" class="botao botao--secundario">Ver protagonistas ↗</a>
+            <a href="/protagonistas" class="botao botao--secundario">Ver protagonistas ↗</a>
+            <a href="/equipes" class="botao botao--secundario">Montar minha equipe</a>
           </div>
           <div class="hero__assinatura">PART 01 — 06 <span></span> STAND · BLOODLINE · DESTINY</div>
         </div>
@@ -87,7 +68,8 @@
           <p id="sinopseConteudo" class="sinopse__paragrafo">
             Carregando sinopse da AniList...
           </p>
-          <div class="sinopse__meta" id="sinopseMeta" aria-hidden="true"></div>
+          <div class="sinopse__meta" id="sinopseMeta"></div>
+          <p class="aviso-fonte" id="archive-status" role="status"></p>
         </div>
         <div class="sinopse__moldura">
           <div class="sinopse__imagem" id="sinopseImagem"></div>
@@ -114,9 +96,14 @@
         <div class="secao-cabecalho">
           <div>
             <span class="rotulo-secao">Elenco</span>
-            <h2 id="personagens-titulo">Personagens principais</h2>
+            <h2 id="personagens-titulo">Catálogo de personagens</h2>
           </div>
         </div>
+        <div class="catalogo-filtros">
+          <label><span>Parte</span><select id="catalogo-parte" aria-label="Filtrar personagens por parte"></select></label>
+          <label><span>Buscar</span><input id="catalogo-busca" type="search" placeholder="Nome ou Stand"></label>
+        </div>
+        <p class="aviso-fonte" id="catalogo-status" role="status">Carregando o catálogo de equipes...</p>
         <div class="grade-personagens" id="gradePersonagens" aria-live="polite">
           <p class="mensagem-carregando">Carregando personagens...</p>
         </div>
@@ -126,12 +113,13 @@
     <footer class="rodape">
       <p>
         Site de fã não-oficial sobre JoJo's Bizarre Adventure, de Hirohiko Araki.
-        Dados de personagens e temporadas via
+        Catálogo de personagens via <a href="https://jikan.moe" target="_blank" rel="noopener noreferrer">Jikan</a>, com base local de contingência.
+        Sinopse, temporadas e informações extras via
         <a href="https://anilist.co" target="_blank" rel="noopener noreferrer">AniList</a>.
       </p>
     </footer>
 
-    <div class="modal" id="modalPersonagem" role="dialog" aria-modal="true" aria-labelledby="modalNome" hidden>
+    <dialog class="modal modal-personagem" id="modalPersonagem" aria-labelledby="modalNome" hidden>
       <div class="modal__fundo" id="modalFundo"></div>
       <div class="modal__caixa">
         <button class="modal__fechar" id="modalFechar" aria-label="Fechar">×</button>
@@ -149,8 +137,9 @@
             rel="noopener noreferrer"
             >Ver perfil completo na AniList →</a
           >
+          <a class="modal__link" id="modalEquipe" href="/equipes">Ver este personagem nas equipes →</a>
         </div>
       </div>
-    </div>
+    </dialog>
   </body>
 </html>

@@ -8,29 +8,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./style.css" />
-  <link rel="stylesheet" href="./protagonistas.css" />
-  <script src="./protagonistas.js" defer></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/protagonistas.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/integracao.css') }}" />
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/archive-fallback.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/protagonistas.js') }}" defer></script>
 </head>
-<body class="pagina-protagonistas">
+<body class="pagina-protagonistas" data-offline="{{ 'true' if config.JOJO_API_FORCE_FALLBACK else 'false' }}">
   <div class="textura-fundo" aria-hidden="true"></div>
-  <header class="cabecalho" id="cabecalho">
-    <div class="cabecalho__conteudo">
-      <a href="./index.html" class="marca">
-        <span class="marca__aura">JOJO</span>
-        <span class="marca__sub">Bizarre Adventure</span>
-      </a>
-      <nav class="navegacao" id="navegacao">
-        <a href="./index.html#sinopse">Sinopse</a>
-        <a href="./index.html#temporadas">Temporadas</a>
-        <a href="./index.html#personagens">Personagens</a>
-        <a href="./protagonistas.html" aria-current="page">Protagonistas</a>
-      </nav>
-      <button class="botao-menu" id="botaoMenu" aria-expanded="false" aria-controls="navegacao" aria-label="Abrir menu de navegação"><span></span><span></span><span></span></button>
-    </div>
-  </header>
+  {% include '_header.html' %}
 
-  <main class="protagonistas-main">
+  <main class="protagonistas-main" id="conteudo" tabindex="-1">
     <section class="protagonista-hero" aria-label="Protagonistas de JoJo">
       <div class="protagonista-hero__texto">
         <p class="protagonista-hero__eyebrow" id="protagonistaParte">PART 01 · PHANTOM BLOOD</p>
@@ -41,6 +30,8 @@
         <p class="protagonista-hero__descricao" id="protagonistaDescricao">Carregando informações da AniList...</p>
         <div class="protagonista-dados" id="protagonistaDados"></div>
         <a class="protagonista-link" id="protagonistaLink" href="#" target="_blank" rel="noopener noreferrer">Ver no AniList ↗</a>
+        <a class="protagonista-link" href="/equipes">Montar minha equipe →</a>
+        <p class="aviso-fonte" id="archive-status" role="status"></p>
       </div>
       <div class="protagonista-hero__visual">
         <div class="protagonista-hero__numero" id="protagonistaNumero">01</div>

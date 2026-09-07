@@ -29,16 +29,6 @@ function mapear() {
   el.contador = document.querySelector("#contador");
 }
 
-function configurarCabecalho() {
-  const aoRolar = () => el.cabecalho.classList.toggle("cabecalho--solido", window.scrollY > 40);
-  aoRolar();
-  window.addEventListener("scroll", aoRolar, { passive: true });
-  el.botaoMenu.addEventListener("click", () => {
-    const aberto = el.navegacao.classList.toggle("navegacao--aberta");
-    el.botaoMenu.setAttribute("aria-expanded", String(aberto));
-  });
-}
-
 function limparDescricao(texto, limite = 500) {
   if (!texto) return "Descrição não informada pela API.";
   const doc = new DOMParser().parseFromString(texto, "text/html");
@@ -54,15 +44,11 @@ function formatarData(data) {
 async function buscarProtagonistas() {
   const aliases = PARTES.map((p, i) => `p${i}: Character(search: "${p.personagem}") { id name { full native } image { large } description(asHtml: false) gender age dateOfBirth { day month year } bloodType favourites siteUrl }`).join("\n");
   const query = `query { ${aliases} }`;
-  const resposta = await fetch(API_URL, {
+  const resultado = await JojoSite.fetchJson(API_URL, {
     method: "POST",
     headers: { Accept: "application/json", "Content-Type": "application/json" },
     body: JSON.stringify({ query }),
   });
-  if (!resposta.ok) throw new Error(`AniList respondeu ${resposta.status}.`);
-  const resultado = await resposta.json();
-  if (resultado.errors?.length) throw new Error(resultado.errors.map((e) => e.message).join("; "));
-
   PARTES.forEach((parte, i) => {
     const personagem = resultado.data?.[`p${i}`];
     if (personagem) dados[parte.numero] = { ...parte, ...personagem };
@@ -73,7 +59,11 @@ function criarDado(rotulo, valor) {
   if (!valor) return null;
   const item = document.createElement("div");
   item.className = "protagonista-dado";
-  item.innerHTML = `<span>${rotulo}</span><strong>${valor}</strong>`;
+  const label = document.createElement("span");
+  const content = document.createElement("strong");
+  label.textContent = rotulo;
+  content.textContent = valor;
+  item.append(label, content);
   return item;
 }
 
@@ -82,10 +72,11 @@ function renderizarFicha(parte) {
   el.numero.textContent = parte.numero;
   el.nome.textContent = parte.name?.full || parte.personagem;
   el.nativo.textContent = parte.name?.native || "";
-  el.stand.textContent = `STAND / ${parte.stand}`;
+  el.stand.textContent = `${parte.stand === "Hamon" ? "TÉCNICA" : "STAND"} / ${parte.stand}`;
   el.descricao.textContent = limparDescricao(parte.description, 620);
-  el.imagem.style.backgroundImage = parte.image?.large ? `url(${parte.image.large})` : "none";
-  el.link.href = parte.siteUrl || "#";
+  JojoSite.setImage(el.imagem, parte.image?.large, parte.personagem);
+  el.link.href = JojoSite.safeUrl(parte.siteUrl) || "#";
+  el.link.hidden = !JojoSite.safeUrl(parte.siteUrl);
   el.contador.textContent = `${parte.numero} / 06`;
 
   el.dados.replaceChildren();
@@ -99,6 +90,7 @@ function renderizarFicha(parte) {
 
   el.tabs.querySelectorAll("button").forEach((botao) => {
     botao.classList.toggle("ativo", botao.dataset.parte === parte.numero);
+    botao.setAttribute("aria-pressed", String(botao.dataset.parte === parte.numero));
   });
 }
 
@@ -120,15 +112,20 @@ function renderizarTabs() {
 
 async function iniciar() {
   mapear();
-  configurarCabecalho();
+  PARTES.forEach((parte, index) => {
+    dados[parte.numero] = { ...parte, ...JOJO_ARCHIVE_FALLBACK.personagens[index] };
+  });
   renderizarTabs();
+  renderizarFicha(dados["01"]);
+  const status = document.querySelector("#archive-status");
+  status.textContent = "Consultando informações da AniList...";
   try {
     await buscarProtagonistas();
-    const primeiro = dados["01"] || Object.values(dados)[0];
-    if (primeiro) renderizarFicha(primeiro);
+    const selected = el.tabs.querySelector(".ativo")?.dataset.parte || "01";
+    renderizarFicha(dados[selected]);
+    status.textContent = "Dados da AniList; fichas locais completam informações indisponíveis.";
   } catch (erro) {
-    console.error(erro);
-    el.descricao.textContent = "Não foi possível carregar os protagonistas agora. Tente novamente em instantes.";
+    status.textContent = "Exibindo fichas locais. Imagens e informações extras dependem da AniList.";
   }
 }
 
