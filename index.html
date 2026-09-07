@@ -5,20 +5,152 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Cards de personagens de JoJo carregados pela API do AniList."
+      content="Site sobre JoJo's Bizarre Adventure — sinopse, partes da saga e personagens, com dados ao vivo da AniList."
     />
-    <title>Personagens de JoJo</title>
+    <title>JoJo's Bizarre Adventure — Guia da Saga</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
     <script src="./script.js" defer></script>
   </head>
   <body>
-    <main class="pagina-personagens">
-      <h1>Personagens de JoJo</h1>
-      <section
-        id="cards-personagens"
-        class="grade-personagens"
-        aria-live="polite"
-        aria-label="Lista de personagens"
-      ></section>
+    <div class="textura-fundo" aria-hidden="true"></div>
+
+    <header class="cabecalho" id="cabecalho">
+      <div class="cabecalho__conteudo">
+        <a href="#topo" class="marca">
+          <span class="marca__aura">JOJO</span>
+          <span class="marca__sub">Bizarre Adventure</span>
+        </a>
+
+        <nav class="navegacao" id="navegacao">
+          <a href="#sinopse">Sinopse</a>
+          <a href="#temporadas">Temporadas</a>
+          <a href="#personagens">Personagens</a>
+          <a href="./protagonistas.html">Protagonistas</a>
+        </nav>
+
+        <button
+          class="botao-menu"
+          id="botaoMenu"
+          aria-expanded="false"
+          aria-controls="navegacao"
+          aria-label="Abrir menu de navegação"
+        >
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <main id="topo">
+      <section class="hero hero--editorial" id="hero" aria-label="Abertura">
+        <div class="hero__fundo-grafico" aria-hidden="true"></div>
+        <div class="hero__conteudo">
+          <p class="hero__selo">THE JOESTAR BLOODLINE · ANILIST ARCHIVE</p>
+          <h1 class="hero__titulo">
+            JOJO<span class="hero__titulo-marca">'S</span><br />
+            BIZARRE<br />
+            ADVENTURE
+          </h1>
+          <p class="hero__descricao">
+            Uma saga que atravessa gerações. Descubra as partes, os personagens e os protagonistas que carregam a vontade dos Joestar.
+          </p>
+          <div class="hero__acoes">
+            <a href="#temporadas" class="botao botao--primario">Explorar as partes</a>
+            <a href="./protagonistas.html" class="botao botao--secundario">Ver protagonistas ↗</a>
+          </div>
+          <div class="hero__assinatura">PART 01 — 06 <span></span> STAND · BLOODLINE · DESTINY</div>
+        </div>
+
+        <div class="hero__collage" id="heroCollage" aria-label="Personagens da saga">
+          <div class="hero__painel hero__painel--a"></div>
+          <div class="hero__painel hero__painel--b"></div>
+          <div class="hero__painel hero__painel--c"></div>
+          <div class="hero__painel hero__painel--d"></div>
+          <div class="hero__painel hero__painel--e"></div>
+          <div class="hero__painel hero__painel--f"></div>
+          <div class="hero__colagem-titulo">BIZARRE<br /><span>ADVENTURE</span></div>
+          <div class="hero__badge">JOJO<br /><small>ARCHIVE</small></div>
+        </div>
+
+        <a href="#sinopse" class="hero__rolar" aria-label="Rolar para a sinopse"><span></span></a>
+      </section>
+
+      <section class="sinopse" id="sinopse" aria-labelledby="sinopse-titulo">
+        <div class="sinopse__texto">
+          <span class="rotulo-secao">Sinopse</span>
+          <h2 id="sinopse-titulo">A vontade que atravessa gerações</h2>
+          <p id="sinopseConteudo" class="sinopse__paragrafo">
+            Carregando sinopse da AniList...
+          </p>
+          <div class="sinopse__meta" id="sinopseMeta" aria-hidden="true"></div>
+        </div>
+        <div class="sinopse__moldura">
+          <div class="sinopse__imagem" id="sinopseImagem"></div>
+        </div>
+      </section>
+
+      <section class="temporadas" id="temporadas" aria-labelledby="temporadas-titulo">
+        <div class="secao-cabecalho">
+          <div>
+            <span class="rotulo-secao">Temporadas</span>
+            <h2 id="temporadas-titulo">As partes da saga</h2>
+          </div>
+          <div class="carrossel-controles">
+            <button class="carrossel-seta" id="setaEsquerda" aria-label="Parte anterior">‹</button>
+            <button class="carrossel-seta" id="setaDireita" aria-label="Próxima parte">›</button>
+          </div>
+        </div>
+        <div class="carrossel" id="carrosselTemporadas" tabindex="0">
+          <p class="mensagem-carregando">Carregando partes da saga...</p>
+        </div>
+      </section>
+
+      <section class="personagens" id="personagens" aria-labelledby="personagens-titulo">
+        <div class="secao-cabecalho">
+          <div>
+            <span class="rotulo-secao">Elenco</span>
+            <h2 id="personagens-titulo">Personagens principais</h2>
+          </div>
+        </div>
+        <div class="grade-personagens" id="gradePersonagens" aria-live="polite">
+          <p class="mensagem-carregando">Carregando personagens...</p>
+        </div>
+      </section>
     </main>
+
+    <footer class="rodape">
+      <p>
+        Site de fã não-oficial sobre JoJo's Bizarre Adventure, de Hirohiko Araki.
+        Dados de personagens e temporadas via
+        <a href="https://anilist.co" target="_blank" rel="noopener noreferrer">AniList</a>.
+      </p>
+    </footer>
+
+    <div class="modal" id="modalPersonagem" role="dialog" aria-modal="true" aria-labelledby="modalNome" hidden>
+      <div class="modal__fundo" id="modalFundo"></div>
+      <div class="modal__caixa">
+        <button class="modal__fechar" id="modalFechar" aria-label="Fechar">×</button>
+        <div class="modal__imagem" id="modalImagem"></div>
+        <div class="modal__conteudo">
+          <p class="modal__nome-nativo" id="modalNomeNativo"></p>
+          <h3 id="modalNome"></h3>
+          <div class="modal__dados" id="modalDados"></div>
+          <p class="modal__descricao" id="modalDescricao"></p>
+          <a
+            href="#"
+            id="modalLink"
+            class="modal__link"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Ver perfil completo na AniList →</a
+          >
+        </div>
+      </div>
+    </div>
   </body>
 </html>

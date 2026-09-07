@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Protagonistas das partes animadas de JoJo's Bizarre Adventure." />
+  <title>JoJo — Protagonistas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./protagonistas.css" />
+  <script src="./protagonistas.js" defer></script>
+</head>
+<body class="pagina-protagonistas">
+  <div class="textura-fundo" aria-hidden="true"></div>
+  <header class="cabecalho" id="cabecalho">
+    <div class="cabecalho__conteudo">
+      <a href="./index.html" class="marca">
+        <span class="marca__aura">JOJO</span>
+        <span class="marca__sub">Bizarre Adventure</span>
+      </a>
+      <nav class="navegacao" id="navegacao">
+        <a href="./index.html#sinopse">Sinopse</a>
+        <a href="./index.html#temporadas">Temporadas</a>
+        <a href="./index.html#personagens">Personagens</a>
+        <a href="./protagonistas.html" aria-current="page">Protagonistas</a>
+      </nav>
+      <button class="botao-menu" id="botaoMenu" aria-expanded="false" aria-controls="navegacao" aria-label="Abrir menu de navegação"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <main class="protagonistas-main">
+    <section class="protagonista-hero" aria-label="Protagonistas de JoJo">
+      <div class="protagonista-hero__texto">
+        <p class="protagonista-hero__eyebrow" id="protagonistaParte">PART 01 · PHANTOM BLOOD</p>
+        <p class="protagonista-hero__rotulo">PROTAGONIST</p>
+        <h1 id="protagonistaNome">Jonathan Joestar</h1>
+        <p class="protagonista-hero__nativo" id="protagonistaNativo"></p>
+        <p class="protagonista-hero__stand" id="protagonistaStand">HAMON</p>
+        <p class="protagonista-hero__descricao" id="protagonistaDescricao">Carregando informações da AniList...</p>
+        <div class="protagonista-dados" id="protagonistaDados"></div>
+        <a class="protagonista-link" id="protagonistaLink" href="#" target="_blank" rel="noopener noreferrer">Ver no AniList ↗</a>
+      </div>
+      <div class="protagonista-hero__visual">
+        <div class="protagonista-hero__numero" id="protagonistaNumero">01</div>
+        <div class="protagonista-hero__faixa">JOESTAR BLOODLINE</div>
+        <div class="protagonista-hero__imagem" id="protagonistaImagem"></div>
+        <div class="protagonista-hero__grafismo" aria-hidden="true">JO</div>
+      </div>
+    </section>
+
+    <section class="seletor-protagonistas" aria-label="Escolha uma parte">
+      <div class="seletor-protagonistas__cabecalho">
+        <div>
+          <span class="rotulo-secao">The JoJos</span>
+          <h2>Um protagonista por parte</h2>
+        </div>
+        <span class="seletor-protagonistas__contador" id="contador">01 / 06</span>
+      </div>
+      <div class="protagonista-tabs" id="protagonistaTabs"></div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>Site de fã não-oficial sobre JoJo's Bizarre Adventure. Dados de personagens via <a href="https://anilist.co" target="_blank" rel="noopener noreferrer">AniList</a>.</p>
+  </footer>
+</body>
+</html>
