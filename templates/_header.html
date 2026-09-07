@@ -1,0 +1,19 @@
+<a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+<header class="cabecalho{% if page == 'equipes' %} cabecalho--solido{% endif %}" id="cabecalho">
+  <div class="cabecalho__conteudo">
+    <a href="/" class="marca" aria-label="JoJo — página inicial">
+      <span class="marca__aura">JOJO</span>
+      <span class="marca__sub">Bizarre Adventure</span>
+    </a>
+    <nav class="navegacao" id="navegacao" aria-label="Navegação principal">
+      <a href="/#sinopse">Sinopse</a>
+      <a href="/#temporadas">Temporadas</a>
+      <a href="/#personagens">Personagens</a>
+      <a href="/protagonistas"{% if page == 'protagonistas' %} aria-current="page"{% endif %}>Protagonistas</a>
+      <a href="/equipes"{% if page == 'equipes' %} aria-current="page"{% endif %}>Minhas equipes</a>
+    </nav>
+    <button class="botao-menu" id="botaoMenu" type="button" aria-expanded="false" aria-controls="navegacao" aria-label="Abrir menu de navegação">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>

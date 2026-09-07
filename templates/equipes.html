@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Monte equipes de JoJo, acompanhe as alterações e restaure versões anteriores.">
+  <title>JoJo — Minhas equipes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/integracao.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/equipes.css') }}">
+  <script src="{{ url_for('static', filename='js/site.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/catalog.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</head>
+<body class="pagina-equipes">
+  <div class="textura-fundo" aria-hidden="true"></div>
+  {% include '_header.html' %}
+  <main id="conteudo" tabindex="-1" class="equipes-main">
+    <section class="equipe-abertura" aria-labelledby="equipes-titulo">
+      <div class="equipe-abertura__conteudo">
+        <div>
+          <p class="equipe-selo">JOESTAR BLOODLINE · TEAM BUILDER</p>
+          <h1 id="equipes-titulo">Minhas equipes</h1>
+          <p>Até seis personagens. Cada mudança, uma nova versão.</p>
+        </div>
+        <div class="equipe-seletor">
+          <label class="field" for="team-select">
+            <span>Equipe ativa · <strong id="hero-team-count">0</strong> equipes salvas</span>
+            <select id="team-select"><option value="">Nenhuma equipe</option></select>
+          </label>
+          <button class="button button-primary" id="new-team-button" type="button">+ Nova equipe</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <section class="catalog-panel panel" aria-labelledby="catalog-title">
+        <div class="panel-heading">
+          <div><p class="section-code">01 / ELENCO</p><h2 id="catalog-title">Escolha seus personagens</h2></div>
+          <span class="source-badge" id="source-badge" role="status">Carregando</span>
+        </div>
+        <div class="catalog-controls">
+          <label class="field"><span>Parte</span><select id="part-filter" aria-label="Filtrar por parte"></select></label>
+          <label class="field"><span>Buscar</span><input id="character-search" type="search" placeholder="Nome ou Stand"></label>
+        </div>
+        <p class="catalog-help" id="catalog-help">Crie ou selecione uma equipe para adicionar personagens.</p>
+        <div class="catalog-grid" id="catalog-grid" aria-live="polite"><div class="loading-card">Consultando o arquivo...</div></div>
+      </section>
+
+      <div class="formacao-coluna">
+        <section class="team-panel panel" aria-labelledby="team-title">
+          <div class="panel-heading">
+            <div><p class="section-code">02 / FORMAÇÃO</p><h2 id="team-title">Nenhuma equipe selecionada</h2></div>
+          </div>
+          <div class="version-strip" aria-live="polite">
+            <span>Atual <strong id="current-version">—</strong></span>
+            <span>Anterior <strong id="previous-version">—</strong></span>
+          </div>
+          <div id="empty-team" class="empty-team">
+            <span class="empty-symbol" aria-hidden="true">✦</span>
+            <h3>Crie a primeira formação</h3>
+            <p>Escolha um nome e adicione personagens do catálogo.</p>
+            <button class="button button-primary" id="empty-new-team-button" type="button">Criar equipe</button>
+          </div>
+          <div id="team-content" class="team-content hidden">
+            <div class="team-toolbar">
+              <label class="field"><span>Nome da equipe</span><input id="team-name" type="text" maxlength="60"></label>
+              <button class="button button-secondary" id="save-name-button" type="button">Salvar nome</button>
+            </div>
+            <div class="team-meta"><span><strong id="member-count">0</strong>/6 membros</span><span>★ indica o líder</span></div>
+            <div class="team-slots" id="team-slots"></div>
+          </div>
+        </section>
+        <section class="history-panel panel" id="historico" aria-labelledby="history-title">
+          <div class="panel-heading"><div><p class="section-code">03 / LINHA DO TEMPO</p><h2 id="history-title">Histórico de alterações</h2></div></div>
+          <p class="history-help">Abra uma versão para ver a formação e restaurá-la.</p>
+          <div class="timeline" id="history-list" aria-live="polite"><div class="history-empty">O histórico aparecerá aqui.</div></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="rodape"><p>JoJo Team Builder · Equipes salvas neste projeto. Catálogo via Jikan, com base local de contingência.</p></footer>
+
+  <dialog class="team-dialog hidden" id="team-modal" aria-labelledby="team-modal-title">
+    <button class="modal-close" data-close-modal="team-modal" type="button" aria-label="Fechar">×</button>
+    <p class="section-code">NOVA FORMAÇÃO</p>
+    <h2 id="team-modal-title">Nomeie sua equipe</h2>
+    <label class="field modal-field"><span>Nome</span><input id="new-team-name" type="text" maxlength="60" placeholder="Ex.: Cruzados do Destino"></label>
+    <button class="button button-primary button-wide" id="create-team-button" type="button">Criar equipe</button>
+  </dialog>
+  <dialog class="team-dialog hidden" id="version-modal" aria-labelledby="version-modal-title">
+    <button class="modal-close" data-close-modal="version-modal" type="button" aria-label="Fechar">×</button>
+    <p class="section-code" id="version-modal-code">VERSÃO</p>
+    <h2 id="version-modal-title">Detalhes da versão</h2>
+    <p class="version-reason" id="version-reason"></p>
+    <div class="version-members" id="version-members"></div>
+    <p class="history-help">A restauração cria uma nova versão e mantém todo o histórico.</p>
+    <button class="button button-danger button-wide" id="rollback-button" type="button">Restaurar esta versão</button>
+  </dialog>
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

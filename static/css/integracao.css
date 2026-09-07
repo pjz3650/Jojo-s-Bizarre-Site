@@ -1,0 +1,57 @@
+/* Ajustes comuns sobre o visual do ZIP recebido. */
+[hidden], .hidden { display: none !important; }
+.modal-personagem { margin: 0; width: 100%; height: 100dvh; max-width: none; max-height: none; border: 0; background: transparent; color: var(--creme); }
+.modal-personagem::backdrop { background: transparent; }
+:focus-visible { outline: 3px solid var(--ouro-forte); outline-offset: 4px; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .55; }
+.pular-conteudo { position: fixed; top: -100px; left: 20px; z-index: 200; padding: 12px 20px; background: var(--ouro); color: var(--preto-stand); }
+.pular-conteudo:focus { top: 12px; }
+.navegacao { gap: clamp(14px, 2vw, 28px); }
+.navegacao a[aria-current="page"] { color: var(--ouro-forte); }
+.aviso-fonte { font-size: .875rem; color: var(--creme-suave); }
+.catalogo-filtros { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+.catalogo-filtros label { display: grid; gap: 6px; min-width: 0; font-size: .875rem; font-weight: 600; }
+.catalogo-filtros input, .catalogo-filtros select { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--linha); border-radius: 2px; background: var(--roxo-painel); color: var(--creme); font-size: 1rem; }
+.catalogo-filtros input::placeholder { color: var(--creme-suave); opacity: 1; }
+.catalogo-tentar { display: block; margin: 12px auto 0; padding: 10px 18px; border: 1px solid var(--ouro); background: transparent; color: var(--ouro-forte); }
+.cartao-personagem__parte { color: var(--creme-suave); font-size: .875rem; margin: 8px 0 0; }
+@media (max-width: 600px) { .catalogo-filtros { grid-template-columns: 1fr; } }
+.pagina-protagonistas .aviso-fonte { color: #604350; }
+.protagonista-link + .protagonista-link { margin-left: 18px; }
+.protagonistas-main > .protagonista-hero { max-width: none; margin: 0; padding: 0; }
+.marca__sub { font-size: .75rem; letter-spacing: .1em; }
+.pagina-inicio .cabecalho:not(.cabecalho--solido) { background: rgba(240,232,217,.94); border-bottom-color: rgba(27,18,32,.12); backdrop-filter: blur(10px); }
+.pagina-inicio .cabecalho:not(.cabecalho--solido) .marca__aura,
+.pagina-inicio .cabecalho:not(.cabecalho--solido) .navegacao a { color: #211422; }
+.pagina-inicio .cabecalho:not(.cabecalho--solido) .marca__sub { color: #6f5b67; }
+.pagina-inicio .cabecalho:not(.cabecalho--solido) .botao-menu { border-color: #6f5b67; }
+.pagina-inicio .cabecalho:not(.cabecalho--solido) .botao-menu span { background: #211422; }
+.imagem-sem-foto { display: grid; place-content: center; padding: 20px; text-align: center; color: var(--creme); font-family: var(--fonte-display); font-size: 2rem; }
+.hero__painel.imagem-sem-foto { padding-bottom: 100px; }
+.protagonista-hero__imagem.imagem-sem-foto { font-size: 3rem; }
+.cartao-parte__info, .cartao-personagem__favoritos { font-size: .875rem; }
+.protagonista-dado span, .protagonista-tab small { font-size: .75rem; }
+.protagonista-dado strong, .protagonista-tab strong, .protagonista-link { font-size: .875rem; }
+/* As colunas mínimas do front original somavam 1060px. */
+@media (min-width: 981px) and (max-width: 1120px) {
+  .hero.hero--editorial, .protagonista-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .hero--editorial .hero__titulo, .protagonista-hero h1 { font-size: clamp(3.5rem, 7vw, 5.3rem); }
+  .hero--editorial .hero__conteudo, .protagonista-hero__texto { padding-left: 28px; padding-right: 24px; }
+}
+@media (max-width: 900px) {
+  .botao-menu { display: flex; flex-shrink: 0; }
+  .navegacao { position: absolute; top: 100%; left: 0; right: 0; background: #0b0714; border-bottom: 1px solid var(--linha); flex-direction: column; gap: 0; padding: 8px 28px 18px; visibility: hidden; opacity: 0; pointer-events: none; }
+  .navegacao.navegacao--aberta { visibility: visible; opacity: 1; pointer-events: auto; transform: none; }
+  .navegacao a { padding: 12px 0; border-bottom: 1px solid var(--linha); }
+  .navegacao a:last-child { border-bottom: 0; }
+  .pagina-inicio .cabecalho:not(.cabecalho--solido) .navegacao a,
+  .pagina-protagonistas .cabecalho:not(.cabecalho--solido) .navegacao a { color: var(--creme); }
+}
+@media (max-width: 400px) {
+  .cabecalho__conteudo { padding: 18px 20px; }
+  .hero--editorial .hero__conteudo, .protagonista-hero__texto { padding-left: 20px; padding-right: 20px; }
+  .hero--editorial .hero__titulo, .protagonista-hero h1 { font-size: clamp(2.7rem, 13vw, 3.7rem); overflow-wrap: anywhere; }
+  .hero__assinatura { flex-wrap: wrap; }
+}
